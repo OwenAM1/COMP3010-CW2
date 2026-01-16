@@ -1,5 +1,3 @@
-# COMP3010-CW2
-
 Botsv3 Security Incident Analysis
 Executive Summary
 
@@ -68,16 +66,17 @@ A - bstoll,btun,splunk_access,web_admin
 
 Establishing a baseline of active IAM users is a foundational step in any cloud security investigation. This inventory enables anomaly detection by identifying which accounts were active during the incident. The user BSTOLL was identified as a primary suspect later. 
 
-index=botsv3 sourcetype="aws:cloudtrail" | stats values(userIdentity.Username)
 
 Q2 - What field would you use to alert that AWS API activity has occurred without MFA?
 
-A - additionalEventData.MFAUsed
+A - userIdentity.sessionContext.attributes.mfaAuthenticated
+
+index=botsv3 sourcetype="aws:cloudtrail" *mfa* | fieldsummary | filter field="*mfa*"
 
 
 I then investigated activity that occurred within the aws environment that was not properly authenticated. Any activity that occurred without MFA represents a bypassing of an organization’s primary method of network security. SOC teams should configure alerts on this field to detect compromised sessions as all legitimate activity should have multi-factor authentication.
 
-index=botsv3 sourcetype="aws:cloudtrail" *mfa* | fieldsummary | filter field="*mfa*"
+
 
 Q3 - What is the processor number used on the web servers?
 
@@ -138,7 +137,7 @@ This investigation of the BOTSv3 dataset revealed a cyber attack that exploited 
 
 Recommendations
 
-MFA Enforcement - Deploy IAM policy that denies all API calls that are not made with multi-factor authentication.
+Deploy IAM policy that denies all API calls that are not made with multi-factor authentication.
 Migrate all workstations to the latest Windows Enterprise version for advanced security features.
 Rotate all credentials in the network
 Ensure that all copies of “OPEN_BUCKET_PLEASE_FIX.txt” are removed from the network.
@@ -190,6 +189,6 @@ Security awareness training
 
 Reflections
 
-This incident demonstrates a series of cascading failures where missing preventive controls enabled complete credential exfiltration. A defense-in-depth approach that utilised MFA, config rules and proper endpoint detection and response would have prevented this attack.
+This incident demonstrates a series of cascading failures where missing preventive controls enabled the exposure of company infrastructure to external users. A defense-in-depth approach that utilised MFA, config rules and proper endpoint detection and response would have prevented this attack.
 
 The investigation highlighted the value of centralised log correlation which connected CloudTrail API activity, S3 access logs and windows host monitoring which was essential for reconstructing the incident. SOC teams should ensure visibility across all infrastructure layers.
